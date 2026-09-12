@@ -93,7 +93,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "cooperativa_db",
         "USER": "postgres",
-        "PASSWORD": "123Qwerty$%&",
+        "PASSWORD": "123456789",
         "HOST": "127.0.0.1",
         "PORT": "5432",
     }
@@ -124,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Bogota'
 
 USE_I18N = True
 

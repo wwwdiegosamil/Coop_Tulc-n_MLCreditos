@@ -41,3 +41,6 @@ Desktop.ini
 
 # IDEs
 .idea/
+.ipynb_checkpoints/
+*.bak
+

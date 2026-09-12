@@ -5,7 +5,7 @@ Aplicación web para cargar datos crediticios, visualizar clientes/operaciones y
 - Reglas de morosidad (tabla normativa por tipo de crédito y días de mora).
 - Modelo de Machine Learning (probabilidad de riesgo alto).
 
-## Qué hace el sistema
+## Qué hace mi sistema
 
 El proyecto implementa los siguientes módulos:
 

@@ -1,23 +1,36 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_POST
-from django.utils import timezone
-from django.db.models import Count, Sum, Avg, Value, Q
-from django.db.models.functions import Coalesce
-import numpy as np
 import csv
 from io import BytesIO
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Avg, Count, Q, Sum, Value
+from django.db.models.functions import Coalesce
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
 from openpyxl import Workbook
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-from .forms import UploadDataForm, CustomerAggregateForm
-from .models import DataBatch, CustomerAggregate, CreditOperation
-from .services.importer import import_batch
-
+from scoring.rules import (
+    adjust_probability_by_category,
+    classify_morosidad,
+    decision_final,
+)
 from scoring.services import score_customer
+
+from .forms import CustomerAggregateForm, UploadDataForm
+from .models import (
+    CreditOperation,
+    CustomerAggregate,
+    CustomerAggregateHistory,
+    CustomerRiskHistory,
+    DataBatch,
+)
+from .services.history import diff_dicts, snapshot_customer
+from .services.importer import import_batch
 
 
 @login_required
@@ -92,9 +105,6 @@ def customer_detail(request, cliente):
     hist = obj.history.all()[:50]  # últimos 50
     return render(request, "datahub/customer_detail.html", {"c": obj})
 
-from scoring.rules import classify_morosidad
-from datahub.models import CustomerAggregateHistory
-from datahub.services.history import snapshot_customer, diff_dicts
 
 @login_required
 def customer_edit(request, cliente):
@@ -162,19 +172,6 @@ def customer_toggle_active(request, cliente):
     return redirect("customers_list")
 
 
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-
-from scoring.rules import (
-    classify_morosidad,
-    adjust_probability_by_category,
-    decision_final,   # opcional si lo usas en UI
-)
-
-from scoring.services import score_customer
-from .models import CustomerAggregate, CustomerRiskHistory
 def _cat_ui_to_db(cat_ui: str) -> str:
     # "A-2" -> "A2", "C-1" -> "C1", "D" -> "D"
     return (cat_ui or "").replace("-", "").strip().upper()
@@ -271,10 +268,6 @@ def customer_score(request, cliente):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from .models import CreditOperation, CustomerRiskHistory
 
 @login_required
 def operations_list(request):
